@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapbox GLJS App</title>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 70%; height: 100%; }
+        #panel { position: absolute; top: 0; right: 0; width: 30%; height: 100%; padding: 10px; background-color: #f7f7f7; overflow-y: auto; }
+        #analytics { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div id="panel">
+        <h2>Analytics Panel</h2>
+        <div id="markerContent"></div>
+        <div id="analytics"></div>
+    </div>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiZGV2MDUxMCIsImEiOiJjbGNoaG41czEwYmxuM3FtOWNvemVub3lkIn0.5hN1wrZNfw-7YmnNYKM2YQ';
+
+        const coordinates = [
+            { lng: 40.3722617, lat: 21.1601733, description: "Al shafa", analytics: [12, 15, 8, 10, 7, 9], popupContent: "This is Al Shafa, a beautiful location.", markerContent: "Al Shafa is known for its stunning views and serene environment. It's a perfect spot for relaxation and enjoying nature." },
+            { lng: 40.3146778, lat: 21.342107, description: "Wadi Meharm", analytics: [5, 8, 4, 6, 3, 7], popupContent: "Welcome to Wadi Meharm!", markerContent: "Wadi Meharm offers a unique blend of natural beauty and cultural heritage. Explore its scenic landscapes and historical sites." },
+            { lng: 40.3379107, lat: 21.3544632, description: "Wadi Meharm", analytics: [10, 12, 9, 11, 8, 5], popupContent: "Explore Wadi Meharm and its surroundings.", markerContent: "Discover the hidden gems of Wadi Meharm and immerse yourself in its rich traditions, architecture, and local cuisine." },
+            { lng: 40.2705417, lat: 21.36684, description: "Al Mahali", analytics: [8, 10, 7, 9, 6, 12], popupContent: "Visit Al Mahali for a unique experience.", markerContent: "Al Mahali is a vibrant cultural hub where you can engage in art, music, and dance. Experience the lively atmosphere and creative spirit of the place." }
+        ];
+
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [coordinates[0].lng, coordinates[0].lat],
+            zoom: 2
+        });
+
+        const panel = document.getElementById('panel');
+        const analyticsDiv = document.getElementById('analytics');
+        const markerContentDiv = document.getElementById('markerContent');
+
+        coordinates.forEach((coord, index) => {
+            const marker = new mapboxgl.Marker()
+                .setLngLat([coord.lng, coord.lat])
+                .addTo(map);
+
+            marker.getElement().addEventListener('click', () => {
+                map.flyTo({ center: [coord.lng, coord.lat], zoom: 10 });
+
+                // Update the description in the popup
+                const popup = new mapboxgl.Popup()
+                    .setLngLat([coord.lng, coord.lat])
+                    .setHTML(`<h3>${coord.description}</h3><p>${coord.popupContent}</p>`)
+                    .addTo(map);
+
+                // Update the marker content in the panel
+                markerContentDiv.innerHTML = `<h3>${coord.description}</h3><p>${coord.markerContent}</p>`;
+
+                // Update the analytics panel with a chart
+                const chartCanvas = document.createElement('canvas');
+                chartCanvas.id = 'chart-' + index;
+                analyticsDiv.innerHTML = '';
+                analyticsDiv.appendChild(chartCanvas);
+
+                const ctx = chartCanvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D', 'E', 'F'],
+                        datasets: [{
+                            label: 'Sample Analytics',
+                            data: coord.analytics,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
